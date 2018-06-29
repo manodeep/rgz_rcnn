@@ -8,15 +8,19 @@
 #
 #    Created on 17 June 2017 by chen.wu@icrar.org
 
+from __future__ import absolute_import
+from __future__ import print_function
 import os
 import uuid
-import cPickle
+import six.moves.cPickle
 import numpy as np
 
 from datasets.imdb import imdb
 from datasets.pascal_voc import pascal_voc
 from fast_rcnn.config import cfg
-from voc_eval import voc_eval
+from .voc_eval import voc_eval
+from six.moves import range
+from six.moves import zip
 
 """
 Prepare data sets for the RGZ project
@@ -32,7 +36,7 @@ class rgz(pascal_voc):
         self._data_path = os.path.join(self._devkit_path, 'RGZ' + self._year)
         self._classes = ('__background__',  # always index 0
                          '1_1', '1_2', '1_3', '2_2', '2_3', '3_3')
-        self._class_to_ind = dict(zip(self.classes, xrange(self.num_classes)))
+        self._class_to_ind = dict(list(zip(self.classes, list(range(self.num_classes)))))
         self._image_ext = '.png'
         self._image_index = self._load_image_set_index()
         # Default to roidb handler
@@ -98,7 +102,7 @@ class rgz(pascal_voc):
         aps = []
         # The PASCAL VOC metric changed in 2010
         use_07_metric = True if int(self._year) < 2010 else False
-        print 'VOC07 metric? ' + ('Yes' if use_07_metric else 'No')
+        print('VOC07 metric? ' + ('Yes' if use_07_metric else 'No'))
         if not os.path.isdir(output_dir):
             os.mkdir(output_dir)
         for i, cls in enumerate(self._classes):
@@ -111,7 +115,7 @@ class rgz(pascal_voc):
             aps += [ap]
             print('AP for {} = {:.4f}'.format(cls, ap))
             with open(os.path.join(output_dir, cls + '_pr.pkl'), 'w') as f:
-                cPickle.dump({'rec': rec, 'prec': prec, 'ap': ap}, f)
+                six.moves.cPickle.dump({'rec': rec, 'prec': prec, 'ap': ap}, f)
         print('Mean AP = {:.4f}'.format(np.mean(aps)))
         print('~~~~~~~~')
         print('Results:')

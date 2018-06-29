@@ -7,6 +7,7 @@
 # Modified by Chen Wu
 # --------------------------------------------------------
 
+from __future__ import absolute_import
 from .imdb import imdb
 from .pascal_voc import pascal_voc
 from .rgz import rgz

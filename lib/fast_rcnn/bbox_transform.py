@@ -7,6 +7,7 @@
 # Modified by Chen Wu (chen.wu@icrar.org)
 # --------------------------------------------------------
 
+from __future__ import absolute_import
 import numpy as np
 
 def bbox_transform(ex_rois, gt_rois):

@@ -1,5 +1,7 @@
 # Modified by Chen Wu (chen.wu@icrar.org)
 
+from __future__ import absolute_import
+from __future__ import print_function
 from fast_rcnn.config import cfg, get_output_dir
 import argparse
 from utils.timer import Timer
@@ -8,7 +10,7 @@ import cv2
 from utils.cython_nms import nms, nms_new
 from utils.boxes_grid import get_boxes_grid
 from utils.project_bbox import project_bbox_inv
-import cPickle
+import six.moves.cPickle
 import heapq
 from utils.blob import im_list_to_blob
 import os
@@ -16,6 +18,7 @@ import math
 from rpn_msr.generate import imdb_proposals_det
 import tensorflow as tf
 from fast_rcnn.bbox_transform import clip_boxes, bbox_transform_inv, bbox_contains
+from six.moves import range
 try:
     import matplotlib.pyplot as plt
 except:
@@ -131,7 +134,7 @@ def _clip_boxes(boxes, im_shape):
 def _rescale_boxes(boxes, inds, scales):
     """Rescale boxes according to image rescaling."""
 
-    for i in xrange(boxes.shape[0]):
+    for i in range(boxes.shape[0]):
         boxes[i,:] = boxes[i,:] / scales[int(inds[i])]
 
     return boxes
@@ -233,7 +236,7 @@ def im_detect(sess, net, im, boxes=None, save_vis_dir=None,
 
     if cfg.TEST.DEBUG_TIMELINE:
         trace = timeline.Timeline(step_stats=run_metadata.step_stats)
-        trace_file = open(str(long(time.time() * 1000)) + '-test-timeline.ctf.json', 'w')
+        trace_file = open(str(int(time.time() * 1000)) + '-test-timeline.ctf.json', 'w')
         trace_file.write(trace.generate_chrome_trace_format(show_memory=False))
         trace_file.close()
 
@@ -247,7 +250,7 @@ def vis_detections(im, class_name, dets, thresh=0.8):
     """Visual debugging of detections."""
     import matplotlib.pyplot as plt
     #im = im[:, :, (2, 1, 0)]
-    for i in xrange(np.minimum(10, dets.shape[0])):
+    for i in range(np.minimum(10, dets.shape[0])):
         bbox = dets[i, :4]
         score = dets[i, -1]
         if score > thresh:
@@ -273,10 +276,10 @@ def apply_nms(all_boxes, thresh):
     """
     num_classes = len(all_boxes)
     num_images = len(all_boxes[0])
-    nms_boxes = [[[] for _ in xrange(num_images)]
-                 for _ in xrange(num_classes)]
-    for cls_ind in xrange(num_classes):
-        for im_ind in xrange(num_images):
+    nms_boxes = [[[] for _ in range(num_images)]
+                 for _ in range(num_classes)]
+    for cls_ind in range(num_classes):
+        for im_ind in range(num_images):
             dets = all_boxes[cls_ind][im_ind]
             if dets == []:
                 continue
@@ -335,8 +338,8 @@ def test_net(sess, net, imdb, weights_filename , max_per_image=300,
     # all detections are collected into:
     #    all_boxes[cls][image] = N x 5 array of detections in
     #    (x1, y1, x2, y2, score)
-    all_boxes = [[[] for _ in xrange(num_images)]
-                 for _ in xrange(imdb.num_classes)]
+    all_boxes = [[[] for _ in range(num_images)]
+                 for _ in range(imdb.num_classes)]
 
     output_dir = get_output_dir(imdb, weights_filename)
     det_file = os.path.join(output_dir, 'detections.pkl')
@@ -349,7 +352,7 @@ def test_net(sess, net, imdb, weights_filename , max_per_image=300,
         if not cfg.TEST.HAS_RPN:
             roidb = imdb.roidb
 
-        for i in xrange(num_images):
+        for i in range(num_images):
             # filter out any ground truth boxes
             if cfg.TEST.HAS_RPN:
                 box_proposals = None
@@ -378,7 +381,7 @@ def test_net(sess, net, imdb, weights_filename , max_per_image=300,
             bscore_img = []
             bbc = 0 #bbox count
             index_map = dict()
-            for j in xrange(1, imdb.num_classes):
+            for j in range(1, imdb.num_classes):
                 inds = np.where(scores[:, j] > thresh)[0]
                 ttt += len(inds)
                 cls_scores = scores[inds, j]
@@ -420,22 +423,22 @@ def test_net(sess, net, imdb, weights_filename , max_per_image=300,
             # Limit to max_per_image detections *over all classes*
             if max_per_image > 0:
                 image_scores = np.hstack([all_boxes[j][i][:, -1]
-                                          for j in xrange(1, imdb.num_classes)])
+                                          for j in range(1, imdb.num_classes)])
                 if len(image_scores) > max_per_image:
                     image_thresh = np.sort(image_scores)[-max_per_image]
-                    for j in xrange(1, imdb.num_classes):
+                    for j in range(1, imdb.num_classes):
                         keep = np.where(all_boxes[j][i][:, -1] >= image_thresh)[0]
                         all_boxes[j][i] = all_boxes[j][i][keep, :]
             _t['misc'].toc()
 
-            print 'im_detect: {:d}/{:d} {:d} detection {:d} removed {:.3f}s' \
-                  .format(i + 1, num_images, ttt, removed, _t['im_detect'].average_time)
+            print('im_detect: {:d}/{:d} {:d} detection {:d} removed {:.3f}s' \
+                  .format(i + 1, num_images, ttt, removed, _t['im_detect'].average_time))
 
         with open(det_file, 'wb') as f:
-            cPickle.dump(all_boxes, f, cPickle.HIGHEST_PROTOCOL)
+            six.moves.cPickle.dump(all_boxes, f, six.moves.cPickle.HIGHEST_PROTOCOL)
     else:
         with open(det_file, 'r') as fin:
-            all_boxes = cPickle.load(fin)
+            all_boxes = six.moves.cPickle.load(fin)
 
-    print 'Evaluating detections'
+    print('Evaluating detections')
     imdb.evaluate_detections(all_boxes, output_dir)

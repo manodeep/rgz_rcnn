@@ -8,6 +8,8 @@
 #
 #    Created on 15 March 2018 by chen.wu@icrar.org
 
+from __future__ import absolute_import
+from __future__ import print_function
 import signal
 import os, warnings
 import os.path as osp
@@ -15,6 +17,8 @@ import shutil
 import sys
 
 import matplotlib
+from six.moves import map
+from six.moves import range
 matplotlib.use('Agg')
 from matplotlib.path import Path
 import matplotlib.patches as patches
@@ -32,7 +36,7 @@ class TimeoutException(Exception):
     pass
 
 def _contour_timeout_handler(signum, frame):
-        print "Contour timeout {0}".format(signum)
+        print("Contour timeout {0}".format(signum))
         raise TimeoutException("Contour timeout")
 
 def _get_contour(fits_fn, sigma_level):
@@ -82,7 +86,7 @@ def fuse(fits_fn, ir_fn, output_dir, sigma_level=5, mask_ir=True, new_size=None,
     w, h, d = im_ir.shape
     xsize_pix = w
     ysize_pix = h
-    cs['contours'] = map(make_contours.points_to_dict, cs['contours'])
+    cs['contours'] = list(map(make_contours.points_to_dict, cs['contours']))
     sf_x = float(xsize_pix) / cs['width']
     sf_y = float(ysize_pix) / cs['height']
     #print(sf_x, sf_y)
@@ -148,7 +152,7 @@ def get_masked_ir(fits_fn, radio_fn, ir_fn, output_dir, cs,
     bg_ir[:,:,1] *= 45
     bg_ir[:,:,2] *= 213
 
-    components = map(make_contours.points_to_dict, cs['contours'])
+    components = list(map(make_contours.points_to_dict, cs['contours']))
     ct_pts = np.zeros((len(components) * 4, 1, 2), dtype=np.int32)
 
     for i, ct in enumerate(components):

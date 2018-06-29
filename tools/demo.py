@@ -8,6 +8,8 @@
 #
 #    Created on 15 March 2018 by chen.wu@icrar.org
 
+from __future__ import absolute_import
+from __future__ import print_function
 import os, sys, time
 import os.path as osp
 import argparse

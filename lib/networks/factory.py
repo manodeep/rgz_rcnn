@@ -9,6 +9,7 @@
 
 """Factory method for easily getting imdbs by name."""
 
+from __future__ import absolute_import
 __sets = {}
 
 import networks.VGGnet_train
@@ -39,4 +40,4 @@ def get_network(name):
 
 def list_networks():
     """List all registered imdbs."""
-    return __sets.keys()
+    return list(__sets.keys())

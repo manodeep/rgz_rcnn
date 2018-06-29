@@ -5,6 +5,7 @@
 # Written by Ross Girshick
 # --------------------------------------------------------
 
+from __future__ import absolute_import
 from fast_rcnn.config import cfg
 if cfg.USE_GPU_NMS:
     from nms.gpu_nms import gpu_nms

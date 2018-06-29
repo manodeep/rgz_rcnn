@@ -13,15 +13,19 @@ This script compares the class probabilities produced by Claran and the RGZ
 Consensus Level (CL) for each source. Note that in the current RGZ truth,
 all sources in the same subject share the same CL.
 """
+from __future__ import absolute_import
+from __future__ import print_function
 import _init_paths
 
 import os
-import cPickle
+import six.moves.cPickle
 import os.path as osp
 from collections import defaultdict
 
 import numpy as np
 import matplotlib.pyplot as plt
+from six.moves import range
+from six.moves import zip
 
 # classes that characterise both components and peaks
 CLASSES =  ('__background__', # always index 0
@@ -66,7 +70,7 @@ def load_annotations(cachefile):
     if (not osp.exists(cachefile)):
         raise Exception("Annotation cache file not found: %s" % cachefile)
     with open(cachefile, 'r') as f:
-        recs = cPickle.load(f)
+        recs = six.moves.cPickle.load(f)
     return recs
 
 def load_cl(catalog_csv, suffix='_infraredctmask'):
@@ -264,7 +268,7 @@ def compute_map_from_subset(imagesetfile, anno_file, detpath, catalog_csv,
             mAP += ap
             if (record_size):
                 with open('/tmp/%s.pkl' % classname, 'w') as fout:
-                    cPickle.dump(rsz, fout)
+                    six.moves.cPickle.dump(rsz, fout)
     print('mAP = %.4f' % (mAP / len(cls_names)))
     # else:
     #      rec = -1
@@ -363,7 +367,7 @@ def plot_prob_cl_corr(classname, prob_list, cl_list):
     plt.show()
 
 def plot_prob_cl_box(prob_cl_mapping_list, plot_outliers=False):
-    ks = prob_cl_mapping_list.keys()
+    ks = list(prob_cl_mapping_list.keys())
     ks.sort()
     for i, classname in enumerate(ks):
         v = prob_cl_mapping_list[classname]

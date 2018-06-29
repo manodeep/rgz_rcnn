@@ -9,6 +9,8 @@
 
 """Train a Fast R-CNN network."""
 
+from __future__ import absolute_import
+from __future__ import print_function
 from fast_rcnn.config import cfg
 import roi_data_layer.roidb as rdl_roidb
 from roi_data_layer.layer import RoIDataLayer
@@ -19,6 +21,7 @@ import tensorflow as tf
 import sys
 from tensorflow.python.client import timeline
 import time
+from six.moves import range
 
 
 class SolverWrapper(object):
@@ -35,11 +38,11 @@ class SolverWrapper(object):
         self.output_dir = output_dir
         self.pretrained_model = pretrained_model
 
-        print 'Computing bounding-box regression targets...'
+        print('Computing bounding-box regression targets...')
         if cfg.TRAIN.BBOX_REG:
             self.bbox_means, self.bbox_stds = rdl_roidb.add_bbox_regression_targets(
                 roidb)
-        print 'done'
+        print('done')
 
         # For checkpoint
         self.saver = saver
@@ -51,7 +54,7 @@ class SolverWrapper(object):
         net = self.net
 
         if cfg.TRAIN.BBOX_NORMALIZE_TARGETS_PRECOMPUTED and \
-                        cfg.TRAIN.BBOX_REG and net.layers.has_key('bbox_pred'):
+                        cfg.TRAIN.BBOX_REG and 'bbox_pred' in net.layers:
             # save original values
             with tf.variable_scope('bbox_pred', reuse=True):
                 weights = tf.get_variable("weights")
@@ -79,9 +82,9 @@ class SolverWrapper(object):
 
         snapshot_file = self.saver.save(sess, modelname,
                                         global_step=iter_num + 1)
-        print 'Wrote snapshot to: {:s}'.format(snapshot_file)
+        print('Wrote snapshot to: {:s}'.format(snapshot_file))
 
-        if cfg.TRAIN.BBOX_NORMALIZE_TARGETS_PRECOMPUTED and cfg.TRAIN.BBOX_REG and net.layers.has_key('bbox_pred'):
+        if cfg.TRAIN.BBOX_NORMALIZE_TARGETS_PRECOMPUTED and cfg.TRAIN.BBOX_REG and 'bbox_pred' in net.layers:
             with tf.variable_scope('bbox_pred', reuse=True):
                 # restore net to original state
                 sess.run(net.bbox_weights_assign, feed_dict={
@@ -199,8 +202,8 @@ class SolverWrapper(object):
         # iintialize variables
         sess.run(tf.global_variables_initializer())
         if self.pretrained_model is not None:
-            print ('Loading pretrained model '
-                   'weights from {:s}').format(self.pretrained_model)
+            print('Loading pretrained model '
+                  'weights from {:s}'.format(self.pretrained_model))
             self.net.load(self.pretrained_model, sess, self.saver, True)
 
         last_snapshot_iter = -1
@@ -235,7 +238,7 @@ class SolverWrapper(object):
 
             if cfg.TRAIN.DEBUG_TIMELINE:
                 trace = timeline.Timeline(step_stats=run_metadata.step_stats)
-                trace_file = open(str(long(time.time() * 1000)) +
+                trace_file = open(str(int(time.time() * 1000)) +
                                   '-train-timeline.ctf.json', 'w')
                 trace_file.write(
                     trace.generate_chrome_trace_format(show_memory=False))
@@ -243,10 +246,10 @@ class SolverWrapper(object):
 
             total_loss = rpn_loss_cls_value + rpn_loss_box_value + loss_cls_value + loss_box_value
             if (iter + 1) % (cfg.TRAIN.DISPLAY) == 0:
-                print 'iter: %d / %d, total loss: %.4f, rpn_loss_cls: %.4f, rpn_loss_box: %.4f, loss_cls: %.4f, loss_box: %.4f, lr: %f' %\
+                print('iter: %d / %d, total loss: %.4f, rpn_loss_cls: %.4f, rpn_loss_box: %.4f, loss_cls: %.4f, loss_box: %.4f, lr: %f' %\
                     (iter + 1, max_iters + start_iter, total_loss,
-                     rpn_loss_cls_value, rpn_loss_box_value, loss_cls_value, loss_box_value, lrate)
-                print 'speed: {:.3f}s / iter.'.format(timer.average_time)
+                     rpn_loss_cls_value, rpn_loss_box_value, loss_cls_value, loss_box_value, lrate))
+                print('speed: {:.3f}s / iter.'.format(timer.average_time))
 
             # find out who is the culprit...
             if (total_loss > 0.2 and ((iter - start_iter) > check_thres)):
@@ -266,16 +269,16 @@ class SolverWrapper(object):
 def get_training_roidb(imdb):
     """Returns a roidb (Region of Interest database) for use in training."""
     if cfg.TRAIN.USE_FLIPPED:
-        print 'Appending horizontally-flipped training examples...'
+        print('Appending horizontally-flipped training examples...')
         imdb.append_flipped_images()
-        print 'done'
+        print('done')
 
-    print 'Preparing training data...'
+    print('Preparing training data...')
     if cfg.TRAIN.HAS_RPN:
         rdl_roidb.prepare_roidb(imdb)
     else:
         rdl_roidb.prepare_roidb(imdb)
-    print 'done'
+    print('done')
 
     return imdb.roidb
 
@@ -313,8 +316,8 @@ def filter_roidb(roidb):
     num = len(roidb)
     filtered_roidb = [entry for entry in roidb if is_valid(entry)]
     num_after = len(filtered_roidb)
-    print 'Filtered {} roidb entries: {} -> {}'.format(num - num_after,
-                                                       num, num_after)
+    print('Filtered {} roidb entries: {} -> {}'.format(num - num_after,
+                                                       num, num_after))
     return filtered_roidb
 
 
@@ -327,6 +330,6 @@ def train_net(network, imdb, roidb, output_dir, pretrained_model=None,
     with tf.Session(config=tf.ConfigProto(allow_soft_placement=True)) as sess:
         sw = SolverWrapper(sess, saver, network, imdb, roidb,
                            output_dir, pretrained_model=pretrained_model)
-        print 'Solving...'
+        print('Solving...')
         sw.train_model(sess, max_iters, start_iter=start_iter)
-        print 'done solving'
+        print('done solving')

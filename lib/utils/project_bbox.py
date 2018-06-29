@@ -1,4 +1,7 @@
+from __future__ import absolute_import
+from __future__ import print_function
 import numpy as np
+from six.moves import range
 
 """
 reproject bounding box (xmin, ymin, xmax, ymax) to the transformed grid formed

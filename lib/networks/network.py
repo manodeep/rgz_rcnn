@@ -1,12 +1,16 @@
+from __future__ import absolute_import
+from __future__ import print_function
 import numpy as np
 import tensorflow as tf
 
 from rpn_msr.proposal_layer_tf import proposal_layer as proposal_layer_py
 from rpn_msr.anchor_target_layer_tf import anchor_target_layer as anchor_target_layer_py
 from rpn_msr.proposal_target_layer_tf import proposal_target_layer as proposal_target_layer_py
-from spatial_transformer import transformer, batch_transformer
+from .spatial_transformer import transformer, batch_transformer
 
 from fast_rcnn.config import cfg
+import six
+from six.moves import zip
 
 
 DEFAULT_PADDING = 'SAME'
@@ -67,9 +71,9 @@ class Network(object):
                         try:
                             var = tf.get_variable(subkey)
                             session.run(var.assign(data_dict[key][subkey]))
-                            print "assign pretrain model "+subkey+ " to "+key
+                            print("assign pretrain model "+subkey+ " to "+key)
                         except ValueError:
-                            print "ignore "+key
+                            print("ignore "+key)
                             if not ignore_missing:
                                 raise
 
@@ -78,13 +82,13 @@ class Network(object):
         assert len(args)!=0
         self.inputs = []
         for layer in args:
-            if isinstance(layer, basestring):
+            if isinstance(layer, six.string_types):
                 try:
                     layer = self.layers[layer]
                     if (DEBUG):
                         print(layer)
                 except KeyError:
-                    print(self.layers.keys())
+                    print(list(self.layers.keys()))
                     raise KeyError('Unknown layer name fed: %s'%layer)
             self.inputs.append(layer)
         return self
@@ -93,7 +97,7 @@ class Network(object):
         try:
             layer = self.layers[layer]
         except KeyError:
-            print(self.layers.keys())
+            print(list(self.layers.keys()))
             raise KeyError('Unknown layer name fed: %s'%layer)
         return layer
 

@@ -4,6 +4,7 @@
 # Written by Ross Girshick
 # --------------------------------------------------------
 
+from __future__ import absolute_import
 import numpy as np
 
 def unique_boxes(boxes, scale=1.0):

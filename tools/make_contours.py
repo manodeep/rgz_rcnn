@@ -2,6 +2,8 @@
 #
 # https://github.com/zooniverse/Radio-Galaxy-Zoo/blob/master/scripts/make_contours.py
 
+from __future__ import absolute_import
+from __future__ import print_function
 import os
 import sys
 import glob
@@ -10,6 +12,9 @@ import numpy as np
 from astropy.io import fits
 from collections import namedtuple
 import cmath
+from six.moves import filter
+from six.moves import map
+from six.moves import range
 
 EPSILON = 1e-10
 
@@ -328,7 +333,7 @@ def conrec(d, ilb, iub, jlb, jub, x, y, nc, z):
 
 
 def contour_list(contours):
-    contours = filter(lambda c: not c is None, contours)
+    contours = [c for c in contours if not c is None]
     l = []
     for k, c in enumerate(contours):
         s = c.s.head
@@ -367,8 +372,8 @@ def contour(f, rms, LEVEL_INTERVAL):
         return group
 
     def bounding_box(c):
-        xs = map(lambda p: p.x, c['arr'])
-        ys = map(lambda p: p.y, c['arr'])
+        xs = [p.x for p in c['arr']]
+        ys = [p.y for p in c['arr']]
         max_x = max(xs)
         min_x = min(xs)
         max_y = max(ys)
@@ -376,33 +381,33 @@ def contour(f, rms, LEVEL_INTERVAL):
         c['bbox'] = BBox(max_x, max_y, min_x, min_y)
         return c
 
-    idx = range(1, height + 1)
-    jdx = range(1, width + 1)
+    idx = list(range(1, height + 1))
+    jdx = list(range(1, width + 1))
     LEVELS = make_levels(NLEVELS, LEVEL_INTERVAL)
     cs = contour_list(conrec(data, 0, height - 1, 0, width - 1, idx,
-                             jdx, len(LEVELS), map(lambda l: l * rms / LEVELS[0], LEVELS)))
+                             jdx, len(LEVELS), [l * rms / LEVELS[0] for l in LEVELS]))
 
-    k0contours = map(bounding_box, filter(lambda c: c['k'] == 0, cs))
-    subcontours = filter(lambda c: c['k'] != 0, cs)
+    k0contours = list(map(bounding_box, [c for c in cs if c['k'] == 0]))
+    subcontours = [c for c in cs if c['k'] != 0]
 
-    return {'height': height, 'width': width, 'contours': map(group_contours, filter(filter_small, k0contours))}
+    return {'height': height, 'width': width, 'contours': list(map(group_contours, list(filter(filter_small, k0contours))))}
 
 
 def points_to_dict(g):
     for i, c in enumerate(g):
         if not isinstance(c['arr'][0], dict):
-            c['arr'] = map(lambda p: p.to_dict(), c['arr'])
+            c['arr'] = [p.to_dict() for p in c['arr']]
         g[i] = c
     return g
 
 
 if __name__ == '__main__':
     if len(sys.argv) < 4:
-        print "Usage: python make_contours.py [file] [RMS] [LEVEL_INTERVAL]"
+        print("Usage: python make_contours.py [file] [RMS] [LEVEL_INTERVAL]")
         sys.exit()
     f = sys.argv[1]
     rms = float(sys.argv[2])
     LEVEL_INTERVAL = float(sys.argv[3])
     cs = contour(f, rms, LEVEL_INTERVAL)
-    cs['contours'] = map(points_to_dict, cs['contours'])
-    print json.dumps(cs)
+    cs['contours'] = list(map(points_to_dict, cs['contours']))
+    print(json.dumps(cs))

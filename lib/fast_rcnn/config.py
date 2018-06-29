@@ -18,12 +18,16 @@ Most tools in $ROOT/tools take a --cfg option to specify an override file.
     - See experiments/cfgs/*.yml for example YAML config override files
 """
 
+from __future__ import absolute_import
+from __future__ import print_function
 import os
 import os.path as osp
 import numpy as np
 from distutils import spawn
 # `pip install easydict` if you don't have it
 from easydict import EasyDict as edict
+import six
+from six.moves import zip
 
 __C = edict()
 # Consumers can get config by:
@@ -287,9 +291,9 @@ def _merge_a_into_b(a, b):
     if type(a) is not edict:
         return
 
-    for k, v in a.iteritems():
+    for k, v in six.iteritems(a):
         # a must specify keys that are in b
-        if not b.has_key(k):
+        if k not in b:
             raise KeyError('{} is not a valid config key'.format(k))
 
         # the types must match, too
@@ -298,9 +302,9 @@ def _merge_a_into_b(a, b):
             if isinstance(b[k], np.ndarray):
                 v = np.array(v, dtype=b[k].dtype)
             else:
-                raise ValueError(('Type mismatch ({} vs. {}) '
-                                'for config key: {}').format(type(b[k]),
-                                                            type(v), k))
+                raise ValueError('Type mismatch ({} vs. {}) '
+                                 'for config key: {}'.format(type(b[k]),
+                                                             type(v), k))
 
         # recursively merge dicts
         if type(v) is edict:
@@ -328,10 +332,10 @@ def cfg_from_list(cfg_list):
         key_list = k.split('.')
         d = __C
         for subkey in key_list[:-1]:
-            assert d.has_key(subkey)
+            assert subkey in d
             d = d[subkey]
         subkey = key_list[-1]
-        assert d.has_key(subkey)
+        assert subkey in d
         try:
             value = literal_eval(v)
         except:

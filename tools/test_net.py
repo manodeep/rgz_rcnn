@@ -11,6 +11,8 @@
 
 """Test a Fast R-CNN network on an image database."""
 
+from __future__ import absolute_import
+from __future__ import print_function
 import _init_paths
 from fast_rcnn.test import test_net
 from fast_rcnn.config import cfg, cfg_from_file
@@ -81,7 +83,7 @@ if __name__ == '__main__':
     imdb.competition_mode(args.comp_mode)
 
     network = get_network(args.network_name)
-    print 'Use network `{:s}` in training'.format(args.network_name)
+    print('Use network `{:s}` in training'.format(args.network_name))
 
     if args.device == 'gpu':
         cfg.USE_GPU_NMS = True
@@ -95,7 +97,7 @@ if __name__ == '__main__':
     saver = tf.train.Saver()
     sess = tf.Session(config=tf.ConfigProto(allow_soft_placement=True))
     saver.restore(sess, args.model)
-    print ('Loading model weights from {:s}').format(args.model)
+    print('Loading model weights from {:s}'.format(args.model))
 
     test_net(sess, network, imdb, weights_filename,
              thresh=args.thresh, force=args.force)

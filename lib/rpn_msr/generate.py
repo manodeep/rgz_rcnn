@@ -5,11 +5,14 @@
 # Written by Ross Girshick
 # --------------------------------------------------------
 
+from __future__ import absolute_import
+from __future__ import print_function
 from fast_rcnn.config import cfg
 from utils.blob import im_list_to_blob
 from utils.timer import Timer
 import numpy as np
 import cv2
+from six.moves import range
 
 def _vis_proposals(im, dets, thresh=0.5):
     """Draw detected bounding boxes."""
@@ -36,8 +39,8 @@ def _vis_proposals(im, dets, thresh=0.5):
                 bbox=dict(facecolor='blue', alpha=0.5),
                 fontsize=14, color='white')
 
-    ax.set_title(('{} detections with '
-                  'p({} | box) >= {:.1f}').format(class_name, class_name,
+    ax.set_title('{} detections with '
+                 'p({} | box) >= {:.1f}'.format(class_name, class_name,
                                                   thresh),
                   fontsize=14)
     plt.axis('off')
@@ -92,14 +95,14 @@ def imdb_proposals(net, imdb):
     """Generate RPN proposals on all images in an imdb."""
 
     _t = Timer()
-    imdb_boxes = [[] for _ in xrange(imdb.num_images)]
-    for i in xrange(imdb.num_images):
+    imdb_boxes = [[] for _ in range(imdb.num_images)]
+    for i in range(imdb.num_images):
         im = cv2.imread(imdb.image_path_at(i))
         _t.tic()
         imdb_boxes[i], scores = im_proposals(net, im)
         _t.toc()
-        print 'im_proposals: {:d}/{:d} {:.3f}s' \
-              .format(i + 1, imdb.num_images, _t.average_time)
+        print('im_proposals: {:d}/{:d} {:.3f}s' \
+              .format(i + 1, imdb.num_images, _t.average_time))
         if 0:
             dets = np.hstack((imdb_boxes[i], scores))
             # from IPython import embed; embed()
@@ -112,14 +115,14 @@ def imdb_proposals_det(net, imdb):
     """Generate RPN proposals on all images in an imdb."""
 
     _t = Timer()
-    imdb_boxes = [[] for _ in xrange(imdb.num_images)]
-    for i in xrange(imdb.num_images):
+    imdb_boxes = [[] for _ in range(imdb.num_images)]
+    for i in range(imdb.num_images):
         im = cv2.imread(imdb.image_path_at(i))
         _t.tic()
         boxes, scores = im_proposals(net, im)
         _t.toc()
-        print 'im_proposals: {:d}/{:d} {:.3f}s' \
-              .format(i + 1, imdb.num_images, _t.average_time)
+        print('im_proposals: {:d}/{:d} {:.3f}s' \
+              .format(i + 1, imdb.num_images, _t.average_time))
         dets = np.hstack((boxes, scores))
         imdb_boxes[i] = dets
 

@@ -4,11 +4,14 @@
 # Written by Bharath Hariharan
 # --------------------------------------------------------
 
+from __future__ import absolute_import
+from __future__ import print_function
 import xml.etree.ElementTree as ET
 import os
-import cPickle
+import six.moves.cPickle
 import numpy as np
 import pdb
+from six.moves import range
 def parse_rec(filename):
     """ Parse a PASCAL VOC xml file """
     tree = ET.parse(filename)
@@ -107,21 +110,21 @@ def voc_eval(detpath,
         for i, imagename in enumerate(imagenames):
             recs[imagename] = parse_rec(annopath.format(imagename))
             if i % 100 == 0:
-                print 'Reading annotation for {:d}/{:d}'.format(
-                    i + 1, len(imagenames))
+                print('Reading annotation for {:d}/{:d}'.format(
+                    i + 1, len(imagenames)))
         return recs
 
     if not os.path.isfile(cachefile):
         # load annots
         recs = compute_recs()
         # save
-        print 'Saving cached annotations to {:s}'.format(cachefile)
+        print('Saving cached annotations to {:s}'.format(cachefile))
         with open(cachefile, 'w') as f:
-            cPickle.dump(recs, f)
+            six.moves.cPickle.dump(recs, f)
     else:
         # load
         with open(cachefile, 'r') as f:
-            recs = cPickle.load(f)
+            recs = six.moves.cPickle.load(f)
         try:
             recs[imagenames[0]]
             recs[imagenames[10]]
